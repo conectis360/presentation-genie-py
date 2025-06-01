@@ -1,22 +1,26 @@
 from google.adk.agents import Agent
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
+from .tools.content_analyzer_agent.agent import content_analyzer_agent
+from .tools.storyteller_agent.agent import storyteller_agent
+from .tools.timing_agent.agent import timing_agent
+from .tools.visual_agent.agent import visual_agent
+from .tools.personalizer_agent.agent import personalizer_agent
 
 from . import prompt
-from .tools.google_document_tool import create_document
 
-name="ted_script_coordinator",
-model="gemini-2.0-flash",
-    
+
 root_agent = Agent(
-        name=name,
-        model=model,
-        description="O agente coordenador principal. Processa documentos e delega tarefas específicas para especialistas.",
+        name="ted_script_coordinator",
+        model="gemini-2.0-flash-001",
+        description="O agente coordenador principal. Processa documentos e delega tarefas específicas para "
+                    "especialistas.",
         instruction=prompt.TED_TALK_ORCHESTRATOR_PROMPT,
-        
-        # O agente principal ainda precisa da ferramenta de processamento para sua tarefa core
-        tools=[create_document.create_google_document],
-        
-        # MUDANÇA CHAVE: Liga os sub-agentes aqui!
-        sub_agents=[content_analyzer_agent, storyteller_agent, timing_agent, visual_agent, personalizer_agent]
+        tools=[
+                AgentTool(agent=content_analyzer_agent),
+                AgentTool(agent=storyteller_agent),
+                AgentTool(agent=timing_agent),
+                AgentTool(agent=visual_agent),
+                AgentTool(agent=personalizer_agent),
+            ],
 )
