@@ -55,13 +55,15 @@ def get_current_time(city: str) -> dict:
 
 
 root_agent = Agent(
-    name="weather_time_agent",
+    name="input-agent",
     model="gemini-2.0-flash",
     description=(
-        "Agent to answer questions about the time and weather in a city."
+        "Agent that will receive the text, script or article and send it to the analyzer."
     ),
     instruction=(
-        "You are a helpful agent who can answer user questions about the time and weather in a city."
+        "You are a routing agent. Your ONLY task is to receive any text, script, or article input "
+        "and immediately forward it to the analyzer agent for processing. Do not attempt to analyze, "
+        "summarize, or answer questions about the content yourself."
     ),
     tools=[get_weather, get_current_time],
 )
