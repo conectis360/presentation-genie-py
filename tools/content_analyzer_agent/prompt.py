@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prompt for the ted_script_coordinator."""
+"""Prompt for the content_analyzer_agent."""
 
 
 CONTENT_ANALYZER_AGENT_PROMPT = """

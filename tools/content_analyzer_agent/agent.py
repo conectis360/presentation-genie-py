@@ -11,7 +11,7 @@ model="gemini-2.0-flash",
 content_analyzer_agent = Agent(
         name=name,
         model=model,
-        description="O agente coordenador principal. Processa documentos e delega tarefas específicas para especialistas.",
+        description="O agente analizador de conteudo. Vai pegar o conteudo e analizar para trazer bons insights.",
         instruction=prompt.CONTENT_ANALYZER_AGENT_PROMPT,
         # O agente principal ainda precisa da ferramenta de processamento para sua tarefa core
         tools=[],
