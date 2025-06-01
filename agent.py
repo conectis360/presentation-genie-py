@@ -1,69 +1,29 @@
-import datetime
-from zoneinfo import ZoneInfo
 from google.adk.agents import Agent
 
-def get_weather(city: str) -> dict:
-    """Retrieves the current weather report for a specified city.
-
-    Args:
-        city (str): The name of the city for which to retrieve the weather report.
-
-    Returns:
-        dict: status and result or error msg.
-    """
-    if city.lower() == "new york":
-        return {
-            "status": "success",
-            "report": (
-                "The weather in New York is sunny with a temperature of 25 degrees"
-                " Celsius (77 degrees Fahrenheit)."
-            ),
-        }
-    else:
-        return {
-            "status": "error",
-            "error_message": f"Weather information for '{city}' is not available.",
-        }
-
-
-def get_current_time(city: str) -> dict:
-    """Returns the current time in a specified city.
-
-    Args:
-        city (str): The name of the city for which to retrieve the current time.
-
-    Returns:
-        dict: status and result or error msg.
-    """
-
-    if city.lower() == "new york":
-        tz_identifier = "America/New_York"
-    else:
-        return {
-            "status": "error",
-            "error_message": (
-                f"Sorry, I don't have timezone information for {city}."
-            ),
-        }
-
-    tz = ZoneInfo(tz_identifier)
-    now = datetime.datetime.now(tz)
-    report = (
-        f'The current time in {city} is {now.strftime("%Y-%m-%d %H:%M:%S %Z%z")}'
-    )
-    return {"status": "success", "report": report}
-
-
+name="ted_script_coordinator",
+model="gemini-2.0-flash",
+    
 root_agent = Agent(
-    name="input-agent",
-    model="gemini-2.0-flash",
-    description=(
-        "Agent that will receive the text, script or article and send it to the analyzer."
-    ),
-    instruction=(
-        "You are a routing agent. Your ONLY task is to receive any text, script, or article input "
-        "and immediately forward it to the analyzer agent for processing. Do not attempt to analyze, "
-        "summarize, or answer questions about the content yourself."
-    ),
-    tools=[get_weather, get_current_time],
+        name=name,
+        model=model,
+        description="O agente coordenador principal. Processa documentos e delega tarefas específicas para especialistas.",
+        instruction="Você é o Agente Orquestrador TED coordenando uma equipe. Sua responsabilidade principal é transformar documentos em roteiros TED. "
+                    "Use a ferramenta 'process_document' APENAS para solicitações específicas de processamento de documento (ex: 'transforme este artigo em roteiro TED'). "
+                    "Você tem agentes especializados: "
+                    "1. 'content_analyzer_agent': Analisa e extrai conteúdo de documentos. Delegue para análise inicial. "
+                    "2. 'storyteller_agent': Transforma conteúdo em narrativas TED envolventes. Delegue para criação de história. "
+                    "3. 'timing_agent': Estrutura o timing de apresentações (15-18 min). Delegue para questões de tempo. "
+                    "4. 'visual_agent': Planeja recursos visuais e slides. Delegue para apoio visual. "
+                    "5. 'personalizer_agent': Personaliza roteiro para o apresentador. Delegue para customização. "
+                    "Analise a solicitação do usuário. Se for análise de conteúdo, delegue para 'content_analyzer_agent'. "
+                    "Se for sobre narrativa/história, delegue para 'storyteller_agent'. Se for sobre timing, delegue para 'timing_agent'. "
+                    "Se for sobre recursos visuais, delegue para 'visual_agent'. Se for personalização, delegue para 'personalizer_agent'. "
+                    "Se for processamento completo de documento, coordene todos os agentes em sequência apropriada. "
+                    "Para qualquer outra coisa, responda adequadamente ou declare que não pode lidar com isso.",
+        
+        # O agente principal ainda precisa da ferramenta de processamento para sua tarefa core
+        tools=[process_document],
+        
+        # MUDANÇA CHAVE: Liga os sub-agentes aqui!
+        sub_agents=[content_analyzer_agent, storyteller_agent, timing_agent, visual_agent, personalizer_agent]
 )
