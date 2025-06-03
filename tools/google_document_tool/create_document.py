@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 
 # Google Docs API configuration
 SCOPES = ['https://www.googleapis.com/auth/documents']
+SERVICE_ACCOUNT_FILE = 'service-account.json'  # Arquivo de credenciais
 
 
 def create_google_document(text: str, title: str):
@@ -28,16 +29,30 @@ def create_google_document(text: str, title: str):
             - error_details (str): Error information if operation failed
     """
     try:
-        # Find service account credentials file
-        credentials_file = None
+        # Lista de possíveis locais de credenciais (com caminhos absolutos)
+        possible_files = []
 
-        # Check common locations for credentials
-        possible_files = [
-            'service-account.json',
-            'credentials.json'
-        ]
+        # 1. Variável de ambiente (prioridade máxima)
+        env_creds = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        if env_creds:
+            possible_files.append(os.path.abspath(env_creds))
 
-        # Add home directory paths
+        # 2. Diretório atual do script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        possible_files.extend([
+            os.path.join(script_dir, 'service-account.json'),
+            os.path.join(script_dir, 'credentials.json')
+        ])
+
+        # 3. Diretório de trabalho atual
+        cwd = os.getcwd()
+        if cwd != script_dir:  # Evitar duplicatas
+            possible_files.extend([
+                os.path.join(cwd, 'service-account.json'),
+                os.path.join(cwd, 'credentials.json')
+            ])
+
+        # 4. Diretório home do usuário
         try:
             home_dir = os.path.expanduser('~')
             possible_files.extend([
@@ -45,30 +60,27 @@ def create_google_document(text: str, title: str):
                 os.path.join(home_dir, 'credentials.json')
             ])
         except Exception:
-            pass  # Skip home directory if there's an issue
+            pass
 
-        # Check environment variable
-        try:
-            env_creds = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-            if env_creds:
-                possible_files.insert(0, env_creds)
-        except Exception:
-            pass  # Skip env variable if there's an issue
-
-        # Find existing credentials file
+        # Remover duplicatas e verificar existência
+        checked_files = []
+        credentials_file = None
         for file_path in possible_files:
-            try:
-                if os.path.exists(file_path):
-                    credentials_file = file_path
+            # Normalizar caminhos e remover duplicatas
+            abs_path = os.path.abspath(file_path)
+            if abs_path not in checked_files:
+                checked_files.append(abs_path)
+                if os.path.exists(abs_path):
+                    credentials_file = abs_path
                     break
-            except Exception:
-                continue  # Skip this file if there's an access issue
 
+        # Se nenhum arquivo foi encontrado
         if not credentials_file:
+            checked_paths = "\n".join(f"- {path}" for path in checked_files)
             return {
                 "status": "error",
-                "message": "Service account credentials file not found",
-                "error_details": "Please ensure 'service-account.json' or 'credentials.json' exists in the current directory",
+                "message": "Arquivo de credenciais não encontrado",
+                "error_details": f"Locais verificados:\n{checked_paths}",
                 "document_id": "",
                 "document_url": ""
             }
@@ -178,4 +190,3 @@ def create_google_document(text: str, title: str):
             "document_url": ""
         }
 
-    
