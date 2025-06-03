@@ -6,6 +6,7 @@ from .tools.storyteller_agent.agent import storyteller_agent
 from .tools.timing_agent.agent import timing_agent
 from .tools.visual_agent.agent import visual_agent
 from .tools.personalizer_agent.agent import personalizer_agent
+from .tools.google_document_tool.create_document import create_google_document
 
 from . import prompt
 
@@ -22,5 +23,6 @@ root_agent = Agent(
                 AgentTool(agent=timing_agent),
                 AgentTool(agent=visual_agent),
                 AgentTool(agent=personalizer_agent),
+                create_google_document
             ],
 )
